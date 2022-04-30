@@ -47,6 +47,7 @@ class Scanner(val source: String) {
             }
             ' ', '\r', '\t' -> {} // ignored whitespace
             '\n' -> line++
+            '"' -> string()
             else -> error(line, "Unexpected character.")
         }
     }
@@ -69,5 +70,21 @@ class Scanner(val source: String) {
     private fun peek(): Char {
         if (isAtEnd()) return '\u0000'
         return source[current]
+    }
+
+    private fun string() {
+        while (peek() != '"' && !isAtEnd()){
+            if (peek() == '\n') line++
+            advance()
+        }
+        if (isAtEnd()) {
+            error(line, "Unterminated string.")
+            return
+        }
+        // the closing "
+        advance()
+        // Trim the surrounding quotes
+        val value = source.substring(start + 1, current - 1)
+        addToken(STRING, value)
     }
 }
