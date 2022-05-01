@@ -7,6 +7,17 @@ import lox.TokenType.*
  */
 class Parser(val tokens: List<Token>) {
     private var current = 0
+
+    private class ParseError: RuntimeException()
+
+    fun parse(): Expr? {
+        return try {
+            expression()
+        } catch (e: ParseError) {
+            null
+        }
+    }
+
     private fun expression(): Expr = equality()
 
     /**
@@ -33,7 +44,7 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun check(type: TokenType): Boolean {
-        if (isAtEnd()) return false;
+        if (isAtEnd()) return false
         return peek().type == type
     }
 
@@ -47,16 +58,11 @@ class Parser(val tokens: List<Token>) {
     private fun previous() = tokens[current - 1]
 
 
-    private fun comparison(): Expr {
-        return binary(::term, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)
-    }
+    private fun comparison(): Expr = binary(::term, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)
 
-    private fun term(): Expr {
-        return binary(::factor, MINUS, PLUS)
-    }
-    private fun factor(): Expr {
-        return binary(::unary, SLASH, STAR)
-    }
+    private fun term(): Expr = binary(::factor, MINUS, PLUS)
+
+    private fun factor(): Expr = binary(::unary, SLASH, STAR)
 
     private fun unary(): Expr {
         if (match(BANG, MINUS)) {
@@ -78,7 +84,29 @@ class Parser(val tokens: List<Token>) {
                 consume(RIGHT_PAREN, "Expect ')' after expression")
                 return Grouping(expr)
             }
-            else -> TODO()
+            else -> throw error(peek(), "Expect expression.")
+        }
+    }
+
+    private fun consume(type: TokenType, message: String): Token {
+        if (check(type)) return advance()
+        throw error(peek(), message)
+    }
+
+    private fun error(token: Token, message: String): ParseError {
+        lox.error(token, message)
+        return ParseError()
+    }
+
+    @Suppress("unused") // until we support statements
+    private fun synchronize() {
+        advance()
+        while (!isAtEnd()) {
+            if (previous().type == SEMICOLON) return
+            when (peek().type) {
+                CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN -> return
+                else -> advance()
+            }
         }
     }
 
