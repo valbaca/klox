@@ -24,13 +24,31 @@ fun defineAst(outputDir: String, baseName: String, types: List<String>) {
     with (writer) {
         println("package lox")
         println()
-        println("abstract class $baseName")
+        println("abstract class $baseName {")
+        // The base accept() method
+        println("    abstract fun <R> accept(visitor: Visitor<R>): R")
+        println("}")
+        println()
+        defineVisitor(writer, baseName, types)
         for (type in types) {
             val className = type.split(":")[0].trim()
             val fields = type.split(":")[1].trim()
             defineType(writer, baseName, className, fields)
         }
         close()
+    }
+}
+
+// Kotlin supports method overloading, so we can name them visit() instead of visitName()
+fun defineVisitor(writer: PrintWriter, baseName: String, types: List<String>) {
+    with(writer) {
+        println("private interface Visitor<R> {")
+        for (type in types) {
+            val typeName = type.split(":")[0].trim()
+            println("    fun visit$baseName(${baseName.lowercase()} : $typeName): R")
+        }
+        println("}")
+        println()
     }
 }
 
@@ -42,6 +60,11 @@ fun defineType(writer: PrintWriter, baseName: String, className: String, fieldLi
             println("    val $name: $type,")
         }
         println("): $baseName() {")
+        // Visitor pattern
+        println("    override fun <R> accept(visitor: Visitor<R>): R {")
+        println("        return visitor.visit$baseName(this)")
+        println("    }")
         println("}")
+        println()
     }
 }
