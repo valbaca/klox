@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
     defineAst(outputDir, "Expr", listOf<String>(
         "Binary   : Expr left, Token operator, Expr right",
         "Grouping : Expr expression",
-        "Literal  : Any value", // "Any" was "Object" (?)
+        "Literal  : Any? value", // "Any?" was "Object", made ? to handle nil
         "Unary    : Token operator, Expr right"
     ))
 }
