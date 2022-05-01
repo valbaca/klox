@@ -1,3 +1,6 @@
+### Crafting Interpreters ###
+ast_out/
+
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar

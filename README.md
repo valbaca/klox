@@ -18,3 +18,4 @@ Kotlin has nice features (compared to Java):
 6. String templates
 7. TODO() is literally built into Kotlin
 8. Simple `in` keyword for collections and ranges
+9. `with` saves repetition (like with `writer.println`)
