@@ -45,7 +45,7 @@ fun runFile(path: String) {
 fun run(source: String) {
     val scanner = Scanner(source)
     val tokens = scanner.scanTokens()
-    tokens.forEach { println(it)}
+    tokens.forEach { println(it) }
 }
 
 fun error(line: Int, message: String) {

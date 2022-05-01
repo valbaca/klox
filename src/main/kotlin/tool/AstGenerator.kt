@@ -10,18 +10,20 @@ fun main(args: Array<String>) {
         error("Usage: generate_ast <output directory>")
     }
     val outputDir = args[0]
-    defineAst(outputDir, "Expr", listOf<String>(
-        "Binary   : Expr left, Token operator, Expr right",
-        "Grouping : Expr expression",
-        "Literal  : Any? value", // "Any?" was "Object", made ? to handle nil
-        "Unary    : Token operator, Expr right"
-    ))
+    defineAst(
+        outputDir, "Expr", listOf<String>(
+            "Binary   : Expr left, Token operator, Expr right",
+            "Grouping : Expr expression",
+            "Literal  : Any? value", // "Any?" was "Object", made ? to handle nil
+            "Unary    : Token operator, Expr right"
+        )
+    )
 }
 
 fun defineAst(outputDir: String, baseName: String, types: List<String>) {
     val path = "$outputDir/$baseName.kt"
     val writer = PrintWriter(path, "UTF-8")
-    with (writer) {
+    with(writer) {
         println("package lox")
         println()
         println("abstract class $baseName {")
