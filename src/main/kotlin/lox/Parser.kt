@@ -94,7 +94,7 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun error(token: Token, message: String): ParseError {
-        lox.error(token, message)
+        Lox.error(token, message)
         return ParseError()
     }
 
