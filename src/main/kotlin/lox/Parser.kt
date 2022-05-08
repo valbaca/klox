@@ -28,22 +28,35 @@ class Parser(val tokens: List<Token>) {
         }
     }
 
-    private fun varDeclaration(): Stmt? {
+    private fun varDeclaration(): Stmt {
         val name = consume(IDENTIFIER, "Expect variable name.")
         var initializer: Expr? = null
         if (match(EQUAL)) {
             initializer = expression()
         }
-        if (initializer == null) throw ParseError() // TODO: null is viral :(
         consume(SEMICOLON, "Expect ';' after variable declaration.")
         return Var(name, initializer)
     }
 
 
     private fun statement(): Stmt {
-        if (match(PRINT)) return printStatement()
-        return expressionStatement()
+        return when {
+            match(PRINT) -> printStatement()
+            match(LEFT_BRACE) -> Block(block())
+            else -> expressionStatement()
+        }
     }
+
+    private fun block(): List<Stmt?> {
+        val statements = mutableListOf<Stmt?>()
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration())
+        }
+        consume(RIGHT_BRACE, "Expect '}' after block.")
+        return statements
+    }
+
+
 
     private fun expressionStatement(): Stmt {
         val expr = expression()
