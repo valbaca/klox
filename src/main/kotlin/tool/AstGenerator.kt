@@ -11,11 +11,17 @@ fun main(args: Array<String>) {
     }
     val outputDir = args[0]
     defineAst(
-        outputDir, "Expr", listOf<String>(
+        outputDir, "Expr", listOf(
             "Binary   : Expr left, Token operator, Expr right",
             "Grouping : Expr expression",
             "Literal  : Any? value", // "Any?" was "Object", made ? to handle nil
             "Unary    : Token operator, Expr right"
+        )
+    )
+    defineAst(
+        outputDir, "Stmt", listOf(
+            "Expression : Expr expression",
+            "Print : Expr expression"
         )
     )
 }

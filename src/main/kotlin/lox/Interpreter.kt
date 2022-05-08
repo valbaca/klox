@@ -2,14 +2,19 @@ package lox
 
 import lox.TokenType.*
 
-class Interpreter : Expr.Visitor<Any?> {
-    fun interpret(expression: Expr) {
+class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+    fun interpret(statements: List<Stmt>) {
         try {
-            val value = evaluate(expression)
-            println(stringify(value))
+            for (statement in statements) {
+                execute(statement)
+            }
         } catch (error: RuntimeError) {
             Lox.runtimeError(error)
         }
+    }
+
+    private fun execute(stmt: Stmt) {
+        stmt.accept(this)
     }
 
     private fun stringify(value: Any?): String {
@@ -85,6 +90,15 @@ class Interpreter : Expr.Visitor<Any?> {
         null -> false
         is Boolean -> any
         else -> true
+    }
+
+    override fun visitStmt(stmt: Expression) {
+        evaluate(stmt.expression)
+    }
+
+    override fun visitStmt(stmt: Print) {
+        val value = evaluate(stmt.expression)
+        println(stringify(value))
     }
 
 }

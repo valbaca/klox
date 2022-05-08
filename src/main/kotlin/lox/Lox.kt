@@ -50,9 +50,9 @@ object Lox {
         val scanner = Scanner(source)
         val tokens = scanner.scanTokens()
         val parser = Parser(tokens)
-        val expression = parser.parse()
-        if (hadError || expression == null) return
-        interpreter.interpret(expression)
+        val expressions = parser.parse()
+        if (hadError) return
+        interpreter.interpret(expressions)
     }
 
     fun error(line: Int, message: String) {
@@ -68,7 +68,7 @@ object Lox {
     }
 
     fun report(line: Int, where: String, message: String) {
-        println("[line $line Error $where: $message")
+        println("[line $line] Error $where: $message")
         hadError = true
     }
 
