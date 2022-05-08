@@ -3,6 +3,8 @@ package lox
 import lox.TokenType.*
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+    val environment = Environment()
+
     fun interpret(statements: List<Stmt>) {
         try {
             for (statement in statements) {
@@ -101,4 +103,16 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         println(stringify(value))
     }
 
+    override fun visitStmt(stmt: Var) {
+        val value = evaluate(stmt.initializer)
+        environment.define(stmt.name.lexeme, value)
+    }
+
+    override fun visitExpr(expr: Variable) = environment.get(expr.name)
+
+    override fun visitExpr(expr: Assign): Any? {
+        val value = evaluate(expr.value)
+        environment.assign(expr.name, value)
+        return value
+    }
 }

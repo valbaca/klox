@@ -20,6 +20,14 @@ class AstPrinter : Expr.Visitor<String> {
         return parenthesize(expr.operator.lexeme, expr.right)
     }
 
+    override fun visitExpr(expr: Variable): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitExpr(expr: Assign): String {
+        TODO("Not yet implemented")
+    }
+
     private fun parenthesize(name: String, vararg exprs: Expr): String {
         // Kotlin idiom: use buildString over StringBuilder
         return buildString {

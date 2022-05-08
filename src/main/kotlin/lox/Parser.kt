@@ -8,15 +8,37 @@ import lox.TokenType.*
 class Parser(val tokens: List<Token>) {
     private var current = 0
 
-    private class ParseError: RuntimeException()
+    private class ParseError : RuntimeException()
 
-    fun parse(): List<Stmt> {
-        val statements = mutableListOf<Stmt>()
+    fun parse(): List<Stmt?> {
+        val statements = mutableListOf<Stmt?>()
         while (!isAtEnd()) {
-            statements.add(statement())
+            statements.add(declaration())
         }
         return statements
     }
+
+    private fun declaration(): Stmt? {
+        try {
+            if (match(VAR)) return varDeclaration()
+            return statement()
+        } catch (error: ParseError) {
+            synchronize()
+            return null
+        }
+    }
+
+    private fun varDeclaration(): Stmt? {
+        val name = consume(IDENTIFIER, "Expect variable name.")
+        var initializer: Expr? = null
+        if (match(EQUAL)) {
+            initializer = expression()
+        }
+        if (initializer == null) throw ParseError() // TODO: null is viral :(
+        consume(SEMICOLON, "Expect ';' after variable declaration.")
+        return Var(name, initializer)
+    }
+
 
     private fun statement(): Stmt {
         if (match(PRINT)) return printStatement()
@@ -35,7 +57,21 @@ class Parser(val tokens: List<Token>) {
         return Print(value)
     }
 
-    private fun expression(): Expr = equality()
+    private fun expression(): Expr = assignment()
+
+    private fun assignment(): Expr {
+        val expr = equality()
+        if (match(EQUAL)) {
+            val equals = previous()
+            val value = assignment()
+            if (expr is Variable) {
+                val name = expr.name
+                return Assign(name, value)
+            }
+            error(equals, "Invalid assignment target.")
+        }
+        return expr
+    }
 
     /**
      * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -101,6 +137,7 @@ class Parser(val tokens: List<Token>) {
                 consume(RIGHT_PAREN, "Expect ')' after expression")
                 return Grouping(expr)
             }
+            match(IDENTIFIER) -> Variable(previous())
             else -> throw error(peek(), "Expect expression.")
         }
     }
