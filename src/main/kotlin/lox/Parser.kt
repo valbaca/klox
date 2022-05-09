@@ -41,11 +41,22 @@ class Parser(val tokens: List<Token>) {
 
     private fun statement(): Stmt {
         return when {
+            match(IF) -> ifStatement()
             match(PRINT) -> printStatement()
             match(LEFT_BRACE) -> Block(block())
             else -> expressionStatement()
         }
     }
+
+    private fun ifStatement(): Stmt {
+        consume(LEFT_PAREN, "Expect '(' after 'if'.")
+        val condition = expression()
+        consume(RIGHT_PAREN, "Expect ')' after if condition.")
+        val thenStatement = statement()
+        val elseStatement = if (match(ELSE)) statement() else null
+        return If(condition, thenStatement, elseStatement)
+    }
+
 
     private fun block(): List<Stmt?> {
         val statements = mutableListOf<Stmt?>()
