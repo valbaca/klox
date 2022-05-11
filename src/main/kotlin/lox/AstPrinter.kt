@@ -1,5 +1,7 @@
 package lox
 
+import lox.expr.*
+
 class AstPrinter : Expr.Visitor<String> {
 
     fun print(expr: Expr): String = expr.accept(this)

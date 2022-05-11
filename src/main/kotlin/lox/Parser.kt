@@ -1,6 +1,10 @@
 package lox
 
 import lox.TokenType.*
+import lox.expr.*
+import lox.stmt.*
+import lox.stmt.Function
+import lox.stmt.Return
 
 /**
  * Consumes a flat input sequence, like the scanner, but reads tokens instead of characters
@@ -19,13 +23,35 @@ class Parser(val tokens: List<Token>) {
     }
 
     private fun declaration(): Stmt? {
-        try {
-            if (match(VAR)) return varDeclaration()
-            return statement()
+        return try {
+            when {
+                match(FUN) -> function("function")
+                match(VAR) -> varDeclaration()
+                else -> statement()
+            }
         } catch (error: ParseError) {
             synchronize()
-            return null
+            null
         }
+    }
+
+    private fun function(kind: String): Stmt? {
+        // kind will allow us to support methods later
+        val name = consume(IDENTIFIER, "Expect $kind name.")
+        consume(LEFT_PAREN, "Expect '(' after $kind name.")
+        val parameters = mutableListOf<Token>()
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (parameters.size >= MAX_ARG_SIZE) {
+                    error(peek(), "Can't have more than $MAX_ARG_SIZE parameters.")
+                }
+                parameters.add(consume(IDENTIFIER, "Expect parameter name"))
+            } while (match(COMMA))
+        }
+        consume(RIGHT_PAREN, "Expect ')' after parameters.")
+        consume(LEFT_BRACE, "Expect '{' before $kind body.")
+        val body = block()
+        return Function(name, parameters, body)
     }
 
     private fun varDeclaration(): Stmt {
@@ -45,10 +71,12 @@ class Parser(val tokens: List<Token>) {
             match(IF) -> ifStatement()
             match(WHILE) -> whileStatement()
             match(PRINT) -> printStatement()
+            match(RETURN) -> returnStatement()
             match(LEFT_BRACE) -> Block(block())
             else -> expressionStatement()
         }
     }
+
 
     private fun forStatement(): Stmt {
         consume(LEFT_PAREN, "Expect '(' after 'for'.")
@@ -60,7 +88,7 @@ class Parser(val tokens: List<Token>) {
             match(VAR) -> varDeclaration()
             else -> expressionStatement()
         }
-        var condition = if (!check(SEMICOLON)) expression() else null
+        val condition = if (!check(SEMICOLON)) expression() else null
         consume(SEMICOLON, "Expect ';' after loop condition.")
 
         val increment = if (!check(RIGHT_PAREN)) expression() else null
@@ -126,6 +154,13 @@ class Parser(val tokens: List<Token>) {
         val value = expression()
         consume(SEMICOLON, "Expect ';' after value.")
         return Print(value)
+    }
+
+    private fun returnStatement(): Stmt {
+        val keyword = previous()
+        val value = if (!check(SEMICOLON)) expression() else null
+        consume(SEMICOLON, "Expect ';' after return value.")
+        return Return(keyword, value)
     }
 
     private fun expression(): Expr = assignment()
@@ -269,7 +304,6 @@ class Parser(val tokens: List<Token>) {
         return ParseError()
     }
 
-    @Suppress("unused") // until we support statements
     private fun synchronize() {
         advance()
         while (!isAtEnd()) {

@@ -1,7 +1,10 @@
 package lox
 
 import lox.TokenType.*
+import lox.expr.*
 import lox.globals.Clock
+import lox.stmt.*
+import lox.expr.Grouping as LoxExprGrouping
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     val globals = Environment()
@@ -83,7 +86,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         if (operands.any { it !is Double }) throw RuntimeError(operator, "Operands must be numbers")
     }
 
-    override fun visitExpr(expr: Grouping): Any? {
+    override fun visitExpr(expr: LoxExprGrouping): Any? {
         return evaluate(expr.expression)
     }
 
@@ -129,7 +132,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         executeBlock(stmt.statements, Environment(environment))
     }
 
-    private fun executeBlock(statements: List<Stmt?>, environment: Environment) {
+    fun executeBlock(statements: List<Stmt?>, environment: Environment) {
         val prev = this.environment
         try {
             this.environment = environment
@@ -146,8 +149,13 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         evaluate(stmt.expression)
     }
 
+    override fun visitStmt(stmt: lox.stmt.Function) {
+        val function = Fn(stmt)
+        environment.define(stmt.name.lexeme, function)
+    }
+
     override fun visitStmt(stmt: If) {
-        if (isTruthy(stmt.condition)) {
+        if (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.thenBranch)
         } else if (stmt.elseBranch != null) {
             execute(stmt.elseBranch)
@@ -157,6 +165,11 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     override fun visitStmt(stmt: Print) {
         val value = evaluate(stmt.expression)
         println(stringify(value))
+    }
+
+    override fun visitStmt(stmt: lox.stmt.Return) {
+        val value = if (stmt.value != null) evaluate(stmt.value) else null
+        throw Return(value)
     }
 
     override fun visitStmt(stmt: Var) {

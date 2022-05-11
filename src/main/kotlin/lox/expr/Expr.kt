@@ -1,4 +1,5 @@
-package lox
+package lox.expr
+import lox.Token
 
 abstract class Expr {
     abstract fun <R> accept(visitor: Visitor<R>): R

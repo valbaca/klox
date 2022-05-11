@@ -1,6 +1,8 @@
 package tool
 
 import java.io.PrintWriter
+import java.nio.file.Files
+import java.nio.file.Paths
 
 fun main(args: Array<String>) {
     if ((args.size != 1)) {
@@ -23,8 +25,10 @@ fun main(args: Array<String>) {
         outputDir, "Stmt", listOf(
             "Block      : List<Stmt?> statements",
             "Expression : Expr expression",
+            "Function   : Token name, List<Token> params, List<Stmt?> body",
             "If         : Expr condition, Stmt thenBranch, Stmt? elseBranch",
             "Print      : Expr expression",
+            "Return     : Token keyword, Expr? value",
             "Var        : Token name, Expr? initializer",
             "While      : Expr condition, Stmt body"
         )
@@ -33,10 +37,14 @@ fun main(args: Array<String>) {
 
 object GenerateAst {
     fun defineAst(outputDir: String, baseName: String, types: List<String>) {
-        val path = "$outputDir/$baseName.kt"
+        val basePath = "$outputDir/lox/${baseName.lowercase()}"
+        Files.createDirectories(Paths.get(basePath))
+        val path = "$outputDir/lox/${baseName.lowercase()}/$baseName.kt"
         val writer = PrintWriter(path, "UTF-8")
         with(writer) {
-            println("package lox")
+            println("package lox.${baseName.lowercase()}")
+            println("import lox.Token")
+            if (baseName != "Expr") println("import lox.expr.Expr")
             println()
             println("abstract class $baseName {")
             // The base accept() method
