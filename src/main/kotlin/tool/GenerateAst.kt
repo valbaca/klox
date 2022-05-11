@@ -11,6 +11,7 @@ fun main(args: Array<String>) {
         outputDir, "Expr", listOf(
             "Assign   : Token name, Expr value",
             "Binary   : Expr left, Token operator, Expr right",
+            "Call     : Expr callee, Token paren, List<Expr> arguments",
             "Grouping : Expr expression",
             "Literal  : Any? value", // "Any?" was "Object", made ? to handle nil
             "Logical  : Expr left, Token operator, Expr right",

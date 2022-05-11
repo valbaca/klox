@@ -1,9 +1,16 @@
 package lox
 
 import lox.TokenType.*
+import lox.globals.Clock
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-    private var environment = Environment()
+    val globals = Environment()
+    private var environment = globals
+
+    init {
+        // Kotlin's anonymous object syntax is clunky and ugly, so just used a class
+        globals.define("clock", Clock())
+    }
 
     fun interpret(statements: List<Stmt>) {
         try {
@@ -58,6 +65,18 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
                 }
             }
         }
+    }
+
+    override fun visitExpr(expr: Call): Any? {
+        val callee = evaluate(expr.callee)
+        val arguments = expr.arguments.map { evaluate(it) }
+        if (callee !is Callable) {
+            throw RuntimeError(expr.paren, "Can only call functions and classses.")
+        }
+        if (arguments.size != callee.arity) {
+            throw RuntimeError(expr.paren, "Expected ${callee.arity} arguments but got ${arguments.size}.")
+        }
+        return callee.call(this, arguments)
     }
 
     private fun checkNumberOperands(operator: Token, vararg operands: Any?) {

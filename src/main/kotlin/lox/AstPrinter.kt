@@ -8,6 +8,10 @@ class AstPrinter : Expr.Visitor<String> {
         return parenthesize(expr.operator.lexeme, expr.left, expr.right)
     }
 
+    override fun visitExpr(expr: Call): String {
+        TODO("Not yet implemented")
+    }
+
     override fun visitExpr(expr: Grouping): String {
         return parenthesize("group", expr.expression)
     }
