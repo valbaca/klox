@@ -76,6 +76,18 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         return expr.value
     }
 
+    override fun visitExpr(expr: Logical): Any? {
+        // evaluate left operand first and see if we can short-circuit
+        // notice we return the actual values, no boolean casting
+        val left = evaluate(expr.left)
+        if (expr.operator.type == OR) {
+            if (isTruthy(left)) return left
+        } else {
+            if (!isTruthy(left)) return left;
+        }
+        return evaluate(expr.right)
+    }
+
     override fun visitExpr(expr: Unary): Any {
         val right = evaluate(expr.right)
         return when (expr.operator.type) {
@@ -132,6 +144,12 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         checkNotNull(stmt.initializer)
         val value = evaluate(stmt.initializer)
         environment.define(stmt.name.lexeme, value)
+    }
+
+    override fun visitStmt(stmt: While) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body)
+        }
     }
 
     override fun visitExpr(expr: Variable) = environment.get(expr.name)
