@@ -141,8 +141,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     override fun visitStmt(stmt: Var) {
-        checkNotNull(stmt.initializer)
-        val value = evaluate(stmt.initializer)
+        val value = if (stmt.initializer != null) evaluate(stmt.initializer) else null
         environment.define(stmt.name.lexeme, value)
     }
 
