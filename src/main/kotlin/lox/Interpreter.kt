@@ -150,7 +150,8 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     override fun visitStmt(stmt: lox.stmt.Function) {
-        val function = Fn(stmt)
+        // the env when the function is *declared*, not when it's called.
+        val function = Fn(stmt, environment)
         environment.define(stmt.name.lexeme, function)
     }
 
